@@ -10,11 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PlanosRouteImport } from './routes/planos'
 import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as AuthenticatedAlimentacaoRouteImport } from './routes/_authenticated/alimentacao'
+import { Route as AuthenticatedHabitosRouteImport } from './routes/_authenticated/habitos'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedMovimentoRouteImport } from './routes/_authenticated/movimento'
+import { Route as AuthenticatedRotinaRouteImport } from './routes/_authenticated/rotina'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanosRoute = PlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuizRoute = QuizRouteImport.update({
@@ -22,30 +44,110 @@ const QuizRoute = QuizRouteImport.update({
   path: '/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAlimentacaoRoute =
+  AuthenticatedAlimentacaoRouteImport.update({
+    id: '/alimentacao',
+    path: '/alimentacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHabitosRoute = AuthenticatedHabitosRouteImport.update({
+  id: '/habitos',
+  path: '/habitos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMovimentoRoute = AuthenticatedMovimentoRouteImport.update({
+  id: '/movimento',
+  path: '/movimento',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRotinaRoute = AuthenticatedRotinaRouteImport.update({
+  id: '/rotina',
+  path: '/rotina',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
+  '/alimentacao': typeof AuthenticatedAlimentacaoRoute
+  '/habitos': typeof AuthenticatedHabitosRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/movimento': typeof AuthenticatedMovimentoRoute
+  '/rotina': typeof AuthenticatedRotinaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
+  '/alimentacao': typeof AuthenticatedAlimentacaoRoute
+  '/habitos': typeof AuthenticatedHabitosRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/movimento': typeof AuthenticatedMovimentoRoute
+  '/rotina': typeof AuthenticatedRotinaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
+  '/_authenticated/alimentacao': typeof AuthenticatedAlimentacaoRoute
+  '/_authenticated/habitos': typeof AuthenticatedHabitosRoute
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/movimento': typeof AuthenticatedMovimentoRoute
+  '/_authenticated/rotina': typeof AuthenticatedRotinaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/quiz'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/planos'
+    | '/quiz'
+    | '/alimentacao'
+    | '/habitos'
+    | '/inicio'
+    | '/movimento'
+    | '/rotina'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/quiz'
-  id: '__root__' | '/' | '/quiz'
+  to:
+    | '/'
+    | '/auth'
+    | '/planos'
+    | '/quiz'
+    | '/alimentacao'
+    | '/habitos'
+    | '/inicio'
+    | '/movimento'
+    | '/rotina'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/planos'
+    | '/quiz'
+    | '/_authenticated/alimentacao'
+    | '/_authenticated/habitos'
+    | '/_authenticated/inicio'
+    | '/_authenticated/movimento'
+    | '/_authenticated/rotina'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  PlanosRoute: typeof PlanosRoute
   QuizRoute: typeof QuizRoute
 }
 
@@ -58,6 +160,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planos': {
+      id: '/planos'
+      path: '/planos'
+      fullPath: '/planos'
+      preLoaderRoute: typeof PlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quiz': {
       id: '/quiz'
       path: '/quiz'
@@ -65,11 +188,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/alimentacao': {
+      id: '/_authenticated/alimentacao'
+      path: '/alimentacao'
+      fullPath: '/alimentacao'
+      preLoaderRoute: typeof AuthenticatedAlimentacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/habitos': {
+      id: '/_authenticated/habitos'
+      path: '/habitos'
+      fullPath: '/habitos'
+      preLoaderRoute: typeof AuthenticatedHabitosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/movimento': {
+      id: '/_authenticated/movimento'
+      path: '/movimento'
+      fullPath: '/movimento'
+      preLoaderRoute: typeof AuthenticatedMovimentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rotina': {
+      id: '/_authenticated/rotina'
+      path: '/rotina'
+      fullPath: '/rotina'
+      preLoaderRoute: typeof AuthenticatedRotinaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAlimentacaoRoute: typeof AuthenticatedAlimentacaoRoute
+  AuthenticatedHabitosRoute: typeof AuthenticatedHabitosRoute
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedMovimentoRoute: typeof AuthenticatedMovimentoRoute
+  AuthenticatedRotinaRoute: typeof AuthenticatedRotinaRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAlimentacaoRoute: AuthenticatedAlimentacaoRoute,
+  AuthenticatedHabitosRoute: AuthenticatedHabitosRoute,
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedMovimentoRoute: AuthenticatedMovimentoRoute,
+  AuthenticatedRotinaRoute: AuthenticatedRotinaRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  PlanosRoute: PlanosRoute,
   QuizRoute: QuizRoute,
 }
 export const routeTree = rootRouteImport
