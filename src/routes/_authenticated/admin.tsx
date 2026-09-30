@@ -122,7 +122,7 @@ function AdminPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value?: number }) {
+function Metric({ label, value }: { label: string; value: number | undefined }) {
   return (
     <div className="panel p-5">
       <p className="font-display text-2xl font-semibold">{value ?? "—"}</p>
