@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Apple,
   Dumbbell,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { setCheckin } from "@/lib/data";
+import { OFFLINE_CHECKIN_KEY, todayISO } from "@/lib/viva";
 
 const NAV = [
   { to: "/inicio", label: "Início", icon: Home },
@@ -34,6 +36,32 @@ const MOBILE_NAV = NAV.filter((item) =>
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Sincroniza check-ins salvos offline, sem criar duplicados (upsert por dia/item).
+  useEffect(() => {
+    if (!user || typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(OFFLINE_CHECKIN_KEY);
+    if (!raw) return;
+    const pending = JSON.parse(raw) as Record<string, boolean>;
+    const entries = Object.entries(pending);
+    if (entries.length === 0) return;
+
+    (async () => {
+      try {
+        for (const [key, done] of entries) {
+          const [day, item] = key.split(":");
+          if (!day || !item) continue;
+          await setCheckin(user.id, item, done, day);
+        }
+        window.localStorage.removeItem(OFFLINE_CHECKIN_KEY);
+        await queryClient.invalidateQueries({ queryKey: ["checkins", user.id, todayISO()] });
+      } catch (error) {
+        console.error("Falha ao sincronizar check-ins offline", error);
+      }
+    })();
+  }, [user, queryClient]);
+
 
   const { data: isAdmin } = useQuery({
     queryKey: ["is-admin", user?.id],

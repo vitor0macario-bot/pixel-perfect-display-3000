@@ -14,11 +14,15 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PlanosRouteImport } from './routes/planos'
 import { Route as QuizRouteImport } from './routes/quiz'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAlimentacaoRouteImport } from './routes/_authenticated/alimentacao'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedHabitosRouteImport } from './routes/_authenticated/habitos'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedMovimentoRouteImport } from './routes/_authenticated/movimento'
+import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
 import { Route as AuthenticatedRotinaRouteImport } from './routes/_authenticated/rotina'
+import { Route as AuthenticatedVivaAiRouteImport } from './routes/_authenticated/viva-ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -44,10 +48,21 @@ const QuizRoute = QuizRouteImport.update({
   path: '/quiz',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAlimentacaoRoute =
   AuthenticatedAlimentacaoRouteImport.update({
     id: '/alimentacao',
     path: '/alimentacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedHabitosRoute = AuthenticatedHabitosRouteImport.update({
@@ -65,9 +80,19 @@ const AuthenticatedMovimentoRoute = AuthenticatedMovimentoRouteImport.update({
   path: '/movimento',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProgressoRoute = AuthenticatedProgressoRouteImport.update({
+  id: '/progresso',
+  path: '/progresso',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRotinaRoute = AuthenticatedRotinaRouteImport.update({
   id: '/rotina',
   path: '/rotina',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedVivaAiRoute = AuthenticatedVivaAiRouteImport.update({
+  id: '/viva-ai',
+  path: '/viva-ai',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -76,22 +101,30 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/alimentacao': typeof AuthenticatedAlimentacaoRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/habitos': typeof AuthenticatedHabitosRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/movimento': typeof AuthenticatedMovimentoRoute
+  '/progresso': typeof AuthenticatedProgressoRoute
   '/rotina': typeof AuthenticatedRotinaRoute
+  '/viva-ai': typeof AuthenticatedVivaAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/alimentacao': typeof AuthenticatedAlimentacaoRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/habitos': typeof AuthenticatedHabitosRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/movimento': typeof AuthenticatedMovimentoRoute
+  '/progresso': typeof AuthenticatedProgressoRoute
   '/rotina': typeof AuthenticatedRotinaRoute
+  '/viva-ai': typeof AuthenticatedVivaAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -100,11 +133,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/alimentacao': typeof AuthenticatedAlimentacaoRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/habitos': typeof AuthenticatedHabitosRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/movimento': typeof AuthenticatedMovimentoRoute
+  '/_authenticated/progresso': typeof AuthenticatedProgressoRoute
   '/_authenticated/rotina': typeof AuthenticatedRotinaRoute
+  '/_authenticated/viva-ai': typeof AuthenticatedVivaAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -113,22 +150,30 @@ export interface FileRouteTypes {
     | '/auth'
     | '/planos'
     | '/quiz'
+    | '/admin'
     | '/alimentacao'
+    | '/configuracoes'
     | '/habitos'
     | '/inicio'
     | '/movimento'
+    | '/progresso'
     | '/rotina'
+    | '/viva-ai'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/planos'
     | '/quiz'
+    | '/admin'
     | '/alimentacao'
+    | '/configuracoes'
     | '/habitos'
     | '/inicio'
     | '/movimento'
+    | '/progresso'
     | '/rotina'
+    | '/viva-ai'
   id:
     | '__root__'
     | '/'
@@ -136,11 +181,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/planos'
     | '/quiz'
+    | '/_authenticated/admin'
     | '/_authenticated/alimentacao'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/habitos'
     | '/_authenticated/inicio'
     | '/_authenticated/movimento'
+    | '/_authenticated/progresso'
     | '/_authenticated/rotina'
+    | '/_authenticated/viva-ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -188,11 +237,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuizRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/alimentacao': {
       id: '/_authenticated/alimentacao'
       path: '/alimentacao'
       fullPath: '/alimentacao'
       preLoaderRoute: typeof AuthenticatedAlimentacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/habitos': {
@@ -216,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMovimentoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/progresso': {
+      id: '/_authenticated/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof AuthenticatedProgressoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/rotina': {
       id: '/_authenticated/rotina'
       path: '/rotina'
@@ -223,23 +293,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRotinaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/viva-ai': {
+      id: '/_authenticated/viva-ai'
+      path: '/viva-ai'
+      fullPath: '/viva-ai'
+      preLoaderRoute: typeof AuthenticatedVivaAiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAlimentacaoRoute: typeof AuthenticatedAlimentacaoRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedHabitosRoute: typeof AuthenticatedHabitosRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedMovimentoRoute: typeof AuthenticatedMovimentoRoute
+  AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRoute
   AuthenticatedRotinaRoute: typeof AuthenticatedRotinaRoute
+  AuthenticatedVivaAiRoute: typeof AuthenticatedVivaAiRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAlimentacaoRoute: AuthenticatedAlimentacaoRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedHabitosRoute: AuthenticatedHabitosRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedMovimentoRoute: AuthenticatedMovimentoRoute,
+  AuthenticatedProgressoRoute: AuthenticatedProgressoRoute,
   AuthenticatedRotinaRoute: AuthenticatedRotinaRoute,
+  AuthenticatedVivaAiRoute: AuthenticatedVivaAiRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
