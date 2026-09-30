@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { setCheckin } from "@/lib/data";
+import { OFFLINE_CHECKIN_KEY, todayISO } from "@/lib/viva";
 
 const NAV = [
   { to: "/inicio", label: "Início", icon: Home },
