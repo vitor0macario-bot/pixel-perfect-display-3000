@@ -15,10 +15,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PlanosRouteImport } from './routes/planos'
 import { Route as QuizRouteImport } from './routes/quiz'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAjustesRouteImport } from './routes/_authenticated/ajustes'
 import { Route as AuthenticatedAlimentacaoRouteImport } from './routes/_authenticated/alimentacao'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedHabitosRouteImport } from './routes/_authenticated/habitos'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedLembretesRouteImport } from './routes/_authenticated/lembretes'
 import { Route as AuthenticatedMovimentoRouteImport } from './routes/_authenticated/movimento'
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
 import { Route as AuthenticatedRotinaRouteImport } from './routes/_authenticated/rotina'
@@ -53,6 +55,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAjustesRoute = AuthenticatedAjustesRouteImport.update({
+  id: '/ajustes',
+  path: '/ajustes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAlimentacaoRoute =
   AuthenticatedAlimentacaoRouteImport.update({
     id: '/alimentacao',
@@ -73,6 +80,11 @@ const AuthenticatedHabitosRoute = AuthenticatedHabitosRouteImport.update({
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLembretesRoute = AuthenticatedLembretesRouteImport.update({
+  id: '/lembretes',
+  path: '/lembretes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMovimentoRoute = AuthenticatedMovimentoRouteImport.update({
@@ -102,10 +114,12 @@ export interface FileRoutesByFullPath {
   '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/ajustes': typeof AuthenticatedAjustesRoute
   '/alimentacao': typeof AuthenticatedAlimentacaoRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/habitos': typeof AuthenticatedHabitosRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/lembretes': typeof AuthenticatedLembretesRoute
   '/movimento': typeof AuthenticatedMovimentoRoute
   '/progresso': typeof AuthenticatedProgressoRoute
   '/rotina': typeof AuthenticatedRotinaRoute
@@ -117,10 +131,12 @@ export interface FileRoutesByTo {
   '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/ajustes': typeof AuthenticatedAjustesRoute
   '/alimentacao': typeof AuthenticatedAlimentacaoRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/habitos': typeof AuthenticatedHabitosRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/lembretes': typeof AuthenticatedLembretesRoute
   '/movimento': typeof AuthenticatedMovimentoRoute
   '/progresso': typeof AuthenticatedProgressoRoute
   '/rotina': typeof AuthenticatedRotinaRoute
@@ -134,10 +150,12 @@ export interface FileRoutesById {
   '/planos': typeof PlanosRoute
   '/quiz': typeof QuizRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/ajustes': typeof AuthenticatedAjustesRoute
   '/_authenticated/alimentacao': typeof AuthenticatedAlimentacaoRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/habitos': typeof AuthenticatedHabitosRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/lembretes': typeof AuthenticatedLembretesRoute
   '/_authenticated/movimento': typeof AuthenticatedMovimentoRoute
   '/_authenticated/progresso': typeof AuthenticatedProgressoRoute
   '/_authenticated/rotina': typeof AuthenticatedRotinaRoute
@@ -151,10 +169,12 @@ export interface FileRouteTypes {
     | '/planos'
     | '/quiz'
     | '/admin'
+    | '/ajustes'
     | '/alimentacao'
     | '/configuracoes'
     | '/habitos'
     | '/inicio'
+    | '/lembretes'
     | '/movimento'
     | '/progresso'
     | '/rotina'
@@ -166,10 +186,12 @@ export interface FileRouteTypes {
     | '/planos'
     | '/quiz'
     | '/admin'
+    | '/ajustes'
     | '/alimentacao'
     | '/configuracoes'
     | '/habitos'
     | '/inicio'
+    | '/lembretes'
     | '/movimento'
     | '/progresso'
     | '/rotina'
@@ -182,10 +204,12 @@ export interface FileRouteTypes {
     | '/planos'
     | '/quiz'
     | '/_authenticated/admin'
+    | '/_authenticated/ajustes'
     | '/_authenticated/alimentacao'
     | '/_authenticated/configuracoes'
     | '/_authenticated/habitos'
     | '/_authenticated/inicio'
+    | '/_authenticated/lembretes'
     | '/_authenticated/movimento'
     | '/_authenticated/progresso'
     | '/_authenticated/rotina'
@@ -244,6 +268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ajustes': {
+      id: '/_authenticated/ajustes'
+      path: '/ajustes'
+      fullPath: '/ajustes'
+      preLoaderRoute: typeof AuthenticatedAjustesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/alimentacao': {
       id: '/_authenticated/alimentacao'
       path: '/alimentacao'
@@ -270,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/lembretes': {
+      id: '/_authenticated/lembretes'
+      path: '/lembretes'
+      fullPath: '/lembretes'
+      preLoaderRoute: typeof AuthenticatedLembretesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/movimento': {
@@ -305,10 +343,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAjustesRoute: typeof AuthenticatedAjustesRoute
   AuthenticatedAlimentacaoRoute: typeof AuthenticatedAlimentacaoRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedHabitosRoute: typeof AuthenticatedHabitosRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedLembretesRoute: typeof AuthenticatedLembretesRoute
   AuthenticatedMovimentoRoute: typeof AuthenticatedMovimentoRoute
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRoute
   AuthenticatedRotinaRoute: typeof AuthenticatedRotinaRoute
@@ -317,10 +357,12 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAjustesRoute: AuthenticatedAjustesRoute,
   AuthenticatedAlimentacaoRoute: AuthenticatedAlimentacaoRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedHabitosRoute: AuthenticatedHabitosRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedLembretesRoute: AuthenticatedLembretesRoute,
   AuthenticatedMovimentoRoute: AuthenticatedMovimentoRoute,
   AuthenticatedProgressoRoute: AuthenticatedProgressoRoute,
   AuthenticatedRotinaRoute: AuthenticatedRotinaRoute,
