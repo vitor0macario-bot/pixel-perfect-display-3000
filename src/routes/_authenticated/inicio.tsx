@@ -62,7 +62,7 @@ function InicioPage() {
     }
   }
 
-  const firstName = (profile.data?.name ?? "").split(" ")[0] || "por aqui";
+  const firstName = (profile.data?.name ?? "").trim().split(" ")[0] || "tudo bem";
 
   return (
     <div className="fade-in-soft space-y-8">
