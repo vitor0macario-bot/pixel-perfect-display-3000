@@ -12,10 +12,13 @@ import {
   Shield,
   Sparkles,
   CalendarDays,
+  Bell,
+  Wand2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { setCheckin } from "@/lib/data";
+import { useReminderScheduler } from "@/lib/reminders";
 import { OFFLINE_CHECKIN_KEY, todayISO } from "@/lib/viva";
 
 const NAV = [
@@ -26,6 +29,8 @@ const NAV = [
   { to: "/habitos", label: "Hábitos", icon: ListChecks },
   { to: "/progresso", label: "Progresso", icon: LineChart },
   { to: "/viva-ai", label: "VIVA AI", icon: Sparkles },
+  { to: "/ajustes", label: "Ajustes com IA", icon: Wand2 },
+  { to: "/lembretes", label: "Lembretes", icon: Bell },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
@@ -37,6 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  useReminderScheduler(user?.id);
 
   // Sincroniza check-ins salvos offline, sem criar duplicados (upsert por dia/item).
   useEffect(() => {
