@@ -155,6 +155,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          created_at: string
+          days: number[]
+          enabled: boolean
+          id: string
+          remind_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          days?: number[]
+          enabled?: boolean
+          id?: string
+          remind_at: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          days?: number[]
+          enabled?: boolean
+          id?: string
+          remind_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
