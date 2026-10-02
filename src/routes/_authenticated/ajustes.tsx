@@ -113,7 +113,7 @@ function AjustesPage() {
       {result ? (
         <section className="panel p-6">
           <h2 className="font-display text-lg font-semibold">Sugestões para você</h2>
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed">{result}</p>
+          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed">{result.replace(/\*\*/g, "")}</p>
           <p className="mt-6 text-xs text-muted-foreground">
             Sugestões de organização de hábitos. Não substituem orientação profissional.
           </p>
