@@ -6,7 +6,7 @@ import { Loader2, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { chatWithViva } from "@/lib/ai.functions";
+import { chatWithViva, getVivaUsage } from "@/lib/ai.functions";
 import { fetchProfile } from "@/lib/data";
 import { isPro } from "@/lib/subscription";
 
@@ -69,17 +69,24 @@ function VivaAiPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
-  const pro = isPro(profile.data?.plan);
+  const usageFn = useServerFn(getVivaUsage);
+  const usage = useQuery({ queryKey: ["viva-usage", user?.id], enabled: !!user, queryFn: () => usageFn() });
+  const pro = usage.data?.pro ?? isPro(profile.data?.plan);
+  const limit = usage.data?.limit ?? 5;
+  const used = usage.data?.used ?? 0;
+  const remaining = pro ? Infinity : Math.max(0, limit - used);
+  const blocked = !pro && remaining <= 0;
 
   async function handleSend(text: string) {
     const message = text.trim();
-    if (!message || sending) return;
+    if (!message || sending || blocked) return;
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: message }]);
     setSending(true);
     try {
       const result = await send({ data: { message } });
       setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
+      usage.refetch();
     } catch (error) {
       console.error(error);
       toast.error("Não conseguimos falar com a VIVA AI agora.");
@@ -100,20 +107,20 @@ function VivaAiPage() {
         </p>
       </header>
 
-      {!pro ? (
-        <div className="panel mt-8 p-6">
-          <h2 className="font-display text-lg font-semibold">A VIVA AI faz parte do plano Pro</h2>
-          <p className="mt-3 text-sm text-muted-foreground">
-            No plano Free você continua com quiz, rotina, check-ins e progresso básico.
-          </p>
-          <Link
-            to="/planos"
-            className="mt-6 inline-flex rounded-full bg-gradient-primary px-6 py-3 font-semibold text-primary-foreground shadow-glow"
-          >
-            Ver o plano Pro
-          </Link>
-        </div>
-      ) : null}
+      <div className="panel mt-6 flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
+        {pro ? (
+          <span className="text-muted-foreground">Plano Pro · perguntas ilimitadas</span>
+        ) : (
+          <>
+            <span className="text-muted-foreground">
+              Plano Free · <span className="font-semibold text-foreground">{remaining}</span> de {limit} perguntas restantes hoje
+            </span>
+            <Link to="/planos" className="rounded-full bg-gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow">
+              Ilimitado com Pro
+            </Link>
+          </>
+        )}
+      </div>
 
       <div className="mt-8 flex-1 space-y-4">
         {messages.length === 0 && !sending ? (
