@@ -35,7 +35,10 @@ function LembretesPage() {
     const { error } = await supabase
       .from("reminders")
       .insert({ user_id: user.id, title: title.trim(), remind_at: time, days });
-    if (error) return toast.error("Não conseguimos salvar o lembrete.");
+    if (error) {
+      toast.error("Não conseguimos salvar o lembrete.");
+      return;
+    }
     setTitle("");
     if ("Notification" in window && Notification.permission === "default") {
       await Notification.requestPermission();
