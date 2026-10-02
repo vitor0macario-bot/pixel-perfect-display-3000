@@ -141,6 +141,55 @@ function ConfiguracoesPage() {
       </section>
 
       <section className="panel p-6">
+        <h2 className="font-display text-lg font-semibold">Seus dados</h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Baixe seu histórico de progresso, check-ins e metas.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          {(["json", "csv"] as const).map((fmt) => (
+            <button
+              key={fmt}
+              onClick={async () => {
+                if (!user) return;
+                const [c, t, g] = await Promise.all([
+                  supabase.from("checkins").select("day, item, done").eq("user_id", user.id).order("day"),
+                  supabase.from("task_completions").select("day, tasks(title, category)").eq("user_id", user.id).order("day"),
+                  supabase.from("goals").select("title, target, week_start").eq("user_id", user.id),
+                ]);
+                let body: string;
+                if (fmt === "json") {
+                  body = JSON.stringify({ checkins: c.data, tarefas_concluidas: t.data, metas: g.data }, null, 2);
+                } else {
+                  const rows = [["tipo", "dia", "item", "concluido"]];
+                  for (const r of c.data ?? []) rows.push(["checkin", r.day, r.item, String(r.done)]);
+                  for (const r of t.data ?? []) {
+                    const task = r.tasks as { title?: string } | null;
+                    rows.push(["tarefa", r.day, task?.title ?? "", "true"]);
+                  }
+                  body = rows.map((r) => r.map((v) => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
+                }
+                const url = URL.createObjectURL(new Blob([body], { type: fmt === "json" ? "application/json" : "text/csv" }));
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `viva-dados.${fmt}`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="inline-flex rounded-full border border-border bg-surface px-6 py-3 text-sm font-medium transition-colors hover:bg-surface-strong"
+            >
+              Exportar {fmt.toUpperCase()}
+            </button>
+          ))}
+          <Link
+            to="/lembretes"
+            className="inline-flex rounded-full border border-border bg-surface px-6 py-3 text-sm font-medium transition-colors hover:bg-surface-strong"
+          >
+            Gerenciar lembretes
+          </Link>
+        </div>
+      </section>
+
+      <section className="panel p-6">
         <h2 className="font-display text-lg font-semibold">Sua rotina</h2>
         <p className="mt-3 text-sm text-muted-foreground">
           Mudou algo na sua vida? Refaça o quiz para gerar uma nova rotina.
