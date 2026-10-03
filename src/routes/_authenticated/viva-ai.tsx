@@ -49,6 +49,10 @@ function VivaAiPage() {
 
   const [conversationId, setConversationId] = useState<string | null>(null);
 
+  const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month">("all");
+  const trimmedSearch = search.trim();
+
   const conversations = useQuery({
     queryKey: ["ai-conversations", user?.id],
     enabled: !!user,
@@ -57,10 +61,80 @@ function VivaAiPage() {
         .from("ai_conversations")
         .select("id, title, updated_at")
         .order("updated_at", { ascending: false })
-        .limit(30);
+        .limit(100);
       return data ?? [];
     },
   });
+
+  const searchResults = useQuery({
+    queryKey: ["ai-conversations-search", user?.id, trimmedSearch],
+    enabled: !!user && trimmedSearch.length >= 2,
+    queryFn: async () => {
+      const { data: hits } = await supabase
+        .from("ai_messages")
+        .select("conversation_id")
+        .eq("user_id", user!.id)
+        .ilike("content", `%${trimmedSearch}%`)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const ids = [...new Set((hits ?? []).map((h) => h.conversation_id).filter(Boolean))] as string[];
+      if (ids.length === 0) return [];
+      const { data, error } = await supabase
+        .from("ai_conversations")
+        .select("id, title, updated_at")
+        .in("id", ids)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const cutoffISO = (): string | null => {
+    if (dateFilter === "all") return null;
+    const now = new Date();
+    if (dateFilter === "today") {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      return start.toISOString();
+    }
+    const days = dateFilter === "week" ? 7 : 30;
+    return new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+  };
+
+  const historyList = trimmedSearch.length >= 2 ? (searchResults.data ?? []) : (conversations.data ?? []);
+  const cutoff = cutoffISO();
+  const visibleConversations = historyList.filter((c) => !cutoff || c.updated_at >= cutoff);
+  const historyLoading =
+    (trimmedSearch.length >= 2 ? searchResults.isLoading : conversations.isLoading);
+  const historyLabel =
+    trimmedSearch.length >= 2
+      ? "Resultados da busca"
+      : dateFilter === "all"
+        ? "Conversas anteriores"
+        : dateFilter === "today"
+          ? "Conversas de hoje"
+          : dateFilter === "week"
+            ? "Conversas dos últimos 7 dias"
+            : "Conversas dos últimos 30 dias";
+
+  async function deleteConversation(id: string) {
+    if (!window.confirm("Excluir esta conversa? Isso apaga todas as mensagens dela.")) return;
+    try {
+      await supabase.from("ai_messages").delete().eq("conversation_id", id);
+      const { error } = await supabase.from("ai_conversations").delete().eq("id", id);
+      if (error) throw error;
+      if (conversationId === id) {
+        setConversationId(null);
+        setMessages([]);
+      }
+      conversations.refetch();
+      if (trimmedSearch.length >= 2) searchResults.refetch();
+      toast.success("Conversa excluída.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Não conseguimos excluir a conversa agora.");
+    }
+  }
 
   async function openConversation(id: string) {
     setConversationId(id);
