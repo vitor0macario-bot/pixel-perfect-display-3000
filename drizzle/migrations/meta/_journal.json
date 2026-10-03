@@ -22,6 +22,13 @@
       "when": 1790814006067,
       "tag": "0002_create_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791064168127,
+      "tag": "0003_ai_settings_and_conversations",
+      "breakpoints": true
     }
   ]
 }
