@@ -169,7 +169,7 @@ function VivaAiPage() {
         }}
         className="sticky bottom-20 mt-6 flex items-center gap-2 rounded-full border border-border bg-surface/90 p-2 backdrop-blur-xl lg:bottom-4"
       >
-        <input
+        <input disabled={blocked}
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Como está seu dia hoje?"
@@ -177,7 +177,7 @@ function VivaAiPage() {
         />
         <button
           type="submit"
-          disabled={sending || !input.trim()}
+          disabled={sending || blocked || !input.trim()}
           className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground disabled:opacity-40"
           aria-label="Enviar mensagem"
         >
