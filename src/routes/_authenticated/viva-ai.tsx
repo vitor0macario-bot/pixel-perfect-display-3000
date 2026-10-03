@@ -47,23 +47,35 @@ function VivaAiPage() {
     queryFn: () => fetchProfile(user!.id),
   });
 
-  const history = useQuery({
-    queryKey: ["ai-messages", user?.id],
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
+  const conversations = useQuery({
+    queryKey: ["ai-conversations", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase
-        .from("ai_messages")
-        .select("role, content")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: true })
-        .limit(40);
-      return (data ?? []) as Message[];
+        .from("ai_conversations")
+        .select("id, title, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(30);
+      return data ?? [];
     },
   });
 
-  useEffect(() => {
-    if (history.data) setMessages(history.data);
-  }, [history.data]);
+  async function openConversation(id: string) {
+    setConversationId(id);
+    const { data } = await supabase
+      .from("ai_messages")
+      .select("role, content")
+      .eq("conversation_id", id)
+      .order("created_at", { ascending: true });
+    setMessages((data ?? []) as Message[]);
+  }
+
+  function newConversation() {
+    setConversationId(null);
+    setMessages([]);
+  }
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -84,8 +96,12 @@ function VivaAiPage() {
     setMessages((prev) => [...prev, { role: "user", content: message }]);
     setSending(true);
     try {
-      const result = await send({ data: { message } });
+      const result = await send({ data: { message, conversationId } });
       setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
+      if ("conversationId" in result && result.conversationId) {
+        setConversationId(result.conversationId);
+        conversations.refetch();
+      }
       usage.refetch();
     } catch (error) {
       console.error(error);
@@ -120,6 +136,25 @@ function VivaAiPage() {
             </Link>
           </>
         )}
+      </div>
+
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <button
+          onClick={newConversation}
+          className={`shrink-0 rounded-full border px-4 py-2 text-xs transition-colors ${conversationId === null ? "border-primary bg-primary/15 text-foreground" : "border-border bg-surface text-muted-foreground hover:bg-surface-strong"}`}
+        >
+          + Nova conversa
+        </button>
+        {(conversations.data ?? []).map((c) => (
+          <button
+            key={c.id}
+            onClick={() => openConversation(c.id)}
+            title={c.title}
+            className={`max-w-[14rem] shrink-0 truncate rounded-full border px-4 py-2 text-xs transition-colors ${conversationId === c.id ? "border-primary bg-primary/15 text-foreground" : "border-border bg-surface text-muted-foreground hover:bg-surface-strong"}`}
+          >
+            {c.title}
+          </button>
+        ))}
       </div>
 
       <div className="mt-8 flex-1 space-y-4">

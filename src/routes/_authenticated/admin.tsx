@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
@@ -80,6 +82,8 @@ function AdminPage() {
         <p className="mt-3 text-sm text-muted-foreground">Usuários, assinaturas e métricas do MVP.</p>
       </header>
 
+      <FreeLimitSetting />
+
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Metric label="Usuários cadastrados" value={m?.total} />
         <Metric label="Completaram o quiz" value={m?.quiz} />
@@ -128,5 +132,63 @@ function Metric({ label, value }: { label: string; value: number | undefined }) 
       <p className="font-display text-2xl font-semibold">{value ?? "—"}</p>
       <p className="mt-1 text-xs text-muted-foreground">{label}</p>
     </div>
+  );
+}
+
+function FreeLimitSetting() {
+  const [value, setValue] = useState("5");
+  const [saving, setSaving] = useState(false);
+  const setting = useQuery({
+    queryKey: ["app-setting", "free_daily_ai_limit"],
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "free_daily_ai_limit").maybeSingle();
+      return Number(data?.value ?? 5);
+    },
+  });
+  useEffect(() => {
+    if (setting.data !== undefined) setValue(String(setting.data));
+  }, [setting.data]);
+
+  async function save() {
+    const n = Math.floor(Number(value));
+    if (!Number.isFinite(n) || n < 0 || n > 1000) {
+      toast.error("Informe um número entre 0 e 1000.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert({ key: "free_daily_ai_limit", value: n, updated_at: new Date().toISOString() });
+    setSaving(false);
+    if (error) toast.error("Não foi possível salvar.");
+    else {
+      toast.success("Limite atualizado.");
+      setting.refetch();
+    }
+  }
+
+  return (
+    <section className="panel p-6">
+      <h2 className="font-display text-lg font-semibold">VIVA AI no plano Free</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Perguntas por dia permitidas para quem está no Free. O Pro é sempre ilimitado.</p>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <input
+          type="number"
+          min={0}
+          max={1000}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="input-base w-28"
+          aria-label="Perguntas diárias no Free"
+        />
+        <button
+          onClick={save}
+          disabled={saving}
+          className="rounded-full bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
+        >
+          {saving ? "Salvando..." : "Salvar"}
+        </button>
+      </div>
+    </section>
   );
 }
