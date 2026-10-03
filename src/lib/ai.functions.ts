@@ -4,6 +4,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const FREE_DAILY_LIMIT = 5;
 
+async function getFreeLimit(supabase: any): Promise<number> {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", "free_daily_ai_limit").maybeSingle();
+  const n = Number(data?.value);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : FREE_DAILY_LIMIT;
+}
+
 const SYSTEM_PROMPT = `Você é a VIVA AI, assistente de organização de hábitos e bem-estar do app VIVA.
 Fale português do Brasil, em tom acolhedor, direto e sem julgamento.
 Você responde perguntas gerais sobre hábitos, sono, hidratação, alimentação equilibrada, movimento, foco, produtividade, organização da rotina e motivação, com informações educativas e práticas.
@@ -33,13 +39,13 @@ export const getVivaUsage = createServerFn({ method: "GET" })
     const { data: profile } = await context.supabase
       .from("profiles").select("plan").eq("user_id", context.userId).maybeSingle();
     const pro = profile?.plan === "pro";
-    const used = await countToday(context.supabase, context.userId);
-    return { pro, used, limit: pro ? null : FREE_DAILY_LIMIT };
+    const [used, limit] = await Promise.all([countToday(context.supabase, context.userId), getFreeLimit(context.supabase)]);
+    return { pro, used, limit: pro ? null : limit };
   });
 
 export const chatWithViva = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ message: z.string().min(1).max(2000) }).parse(data))
+  .inputValidator((data: unknown) => z.object({ message: z.string().min(1).max(2000), conversationId: z.string().uuid().nullable().optional() }).parse(data))
   .handler(async ({ data, context }) => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) {
@@ -56,14 +62,17 @@ export const chatWithViva = createServerFn({ method: "POST" })
       supabase.from("tasks").select("period, category, title, duration_min, time_of_day").eq("user_id", userId).eq("active", true).order("sort_order"),
       supabase.from("task_completions").select("task_id").eq("user_id", userId).eq("day", today),
       supabase.from("checkins").select("item, done").eq("user_id", userId).eq("day", today),
-      supabase.from("ai_messages").select("role, content").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
+      data.conversationId
+        ? supabase.from("ai_messages").select("role, content").eq("user_id", userId).eq("conversation_id", data.conversationId).order("created_at", { ascending: false }).limit(12)
+        : Promise.resolve({ data: [] as { role: string; content: string }[] }),
       countToday(supabase, userId),
     ]);
+    const freeLimit = await getFreeLimit(supabase);
 
     const pro = profile.data?.plan === "pro";
-    if (!pro && used >= FREE_DAILY_LIMIT) {
+    if (!pro && used >= freeLimit) {
       return {
-        reply: `Você usou suas ${FREE_DAILY_LIMIT} perguntas gratuitas de hoje. Amanhã elas renovam — ou assine o Pro para conversar sem limite.`,
+        reply: `Você usou suas ${freeLimit} perguntas gratuitas de hoje. Amanhã elas renovam — ou assine o Pro para conversar sem limite.`,
         limited: true,
         used,
       };
@@ -131,10 +140,19 @@ export const chatWithViva = createServerFn({ method: "POST" })
     const reply = text.replace(/\*\*/g, "").trim();
     if (failed || !reply) return { reply: "Não consegui responder agora. Tente novamente em instantes.", error: true };
 
+    let conversationId = data.conversationId ?? null;
+    if (!conversationId) {
+      const title = data.message.length > 60 ? `${data.message.slice(0, 57)}...` : data.message;
+      const { data: conv } = await supabase.from("ai_conversations").insert({ user_id: userId, title }).select("id").single();
+      conversationId = conv?.id ?? null;
+    } else {
+      await supabase.from("ai_conversations").update({ updated_at: new Date().toISOString() }).eq("id", conversationId);
+    }
+
     await supabase.from("ai_messages").insert([
-      { user_id: userId, role: "user", content: data.message },
-      { user_id: userId, role: "assistant", content: reply },
+      { user_id: userId, role: "user", content: data.message, conversation_id: conversationId },
+      { user_id: userId, role: "assistant", content: reply, conversation_id: conversationId },
     ]);
 
-    return { reply, used: used + 1 };
+    return { reply, used: used + 1, conversationId };
   });
