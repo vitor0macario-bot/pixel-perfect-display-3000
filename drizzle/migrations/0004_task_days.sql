@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS days smallint[] NOT NULL DEFAULT '{0,1,2,3,4,5,6}'::smallint[];
