@@ -47,9 +47,10 @@ export const proposeRoutine = createServerFn({ method: "POST" })
       headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
       body: JSON.stringify({
         model: "openai/gpt-6-astra",
-        stream: false,
+        stream: true,
         store: false,
-        reasoning: { effort: "low" },
+        reasoning: { effort: "low", summary: "auto" },
+        include: ["reasoning.encrypted_content"],
         instructions: PROMPT,
         input: `Pedido da pessoa: ${data.request || "melhore minha rotina de forma equilibrada"}\n\nRotina atual: ${JSON.stringify(tasks ?? [])}\n\nCheck-ins dos últimos 7 dias: ${JSON.stringify(checkins ?? [])}`,
       }),
@@ -62,17 +63,29 @@ export const proposeRoutine = createServerFn({ method: "POST" })
       return { error: "Não conseguimos sugerir uma rotina agora." };
     }
 
-    const json = (await res.json()) as {
-      output_text?: string;
-      output?: { type?: string; content?: { type?: string; text?: string }[] }[];
-    };
-    const text =
-      json.output_text ??
-      (json.output ?? [])
-        .flatMap((o) => o.content ?? [])
-        .filter((c) => c.type === "output_text")
-        .map((c) => c.text ?? "")
-        .join("");
+    if (!res.body) return { error: "Não conseguimos sugerir uma rotina agora." };
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let text = "";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === "[DONE]") continue;
+        try {
+          const evt = JSON.parse(raw) as { type?: string; delta?: string };
+          if (evt.type === "response.output_text.delta" && evt.delta) text += evt.delta;
+        } catch {
+          /* parcial */
+        }
+      }
+    }
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return { error: "Não conseguimos sugerir uma rotina agora." };
     try {
