@@ -1,10 +1,11 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Apple, ArrowRight, CalendarDays, Dumbbell, LineChart, ListChecks } from "lucide-react";
+import { Apple, ArrowRight, CalendarDays, Check, Clock, Dumbbell, LineChart, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { fetchCheckins, fetchProfile, setCheckin } from "@/lib/data";
-import { CHECKIN_ITEMS, greeting, OFFLINE_CHECKIN_KEY, todayISO } from "@/lib/viva";
+import { fetchCheckins, fetchProfile, setCheckin, toggleTask, type Task } from "@/lib/data";
+import { CHECKIN_ITEMS, greeting, OFFLINE_CHECKIN_KEY, PERIOD_LABEL, todayISO, type Period } from "@/lib/viva";
 import { TaskRow, useRoutine } from "@/components/task-list";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -42,6 +43,21 @@ function InicioPage() {
     (done.data?.size ?? 0) + CHECKIN_ITEMS.filter((item) => checkinMap.get(item.id)).length;
   const percent = total ? Math.round((completed / total) * 100) : 0;
   const focus = (tasks.data ?? []).find((task) => !done.data?.has(task.id)) ?? null;
+
+  const agenda = useMemo(() => {
+    const timeKey = (task: Task) => {
+      if (task.time_of_day) {
+        const [h, m] = task.time_of_day.split(":").map(Number);
+        return (h || 0) * 60 + (m || 0);
+      }
+      // Sem horário: vai para o fim do dia, na ordem manhã → tarde → noite.
+      const periodOrder: Record<Period, number> = { manha: 0, tarde: 1, noite: 2 };
+      return 24 * 60 + periodOrder[task.period as Period] * 60;
+    };
+    return (tasks.data ?? [])
+      .slice()
+      .sort((a, b) => timeKey(a) - timeKey(b) || a.sort_order - b.sort_order);
+  }, [tasks.data]);
 
   async function handleCheckin(item: string, next: boolean) {
     if (!user) return;
