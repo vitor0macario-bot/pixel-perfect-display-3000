@@ -12,7 +12,7 @@ export function useRoutine({ todayOnly = true }: { todayOnly?: boolean } = {}) {
     queryKey: ["tasks", user?.id],
     enabled: !!user,
     queryFn: () => fetchTasks(user!.id),
-    select: todayOnly ? (list: Task[]) => list.filter((t) => isTaskToday(t)) : undefined,
+    select: (list: Task[]) => (todayOnly ? list.filter((t) => isTaskToday(t)) : list),
   });
   const done = useQuery({
     queryKey: ["completions", user?.id],
