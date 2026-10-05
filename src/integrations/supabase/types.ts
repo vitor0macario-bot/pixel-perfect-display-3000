@@ -311,6 +311,7 @@ export type Database = {
           active: boolean
           category: string
           created_at: string
+          days: number[]
           description: string
           duration_min: number
           id: string
@@ -324,6 +325,7 @@ export type Database = {
           active?: boolean
           category?: string
           created_at?: string
+          days?: number[]
           description?: string
           duration_min?: number
           id?: string
@@ -337,6 +339,7 @@ export type Database = {
           active?: boolean
           category?: string
           created_at?: string
+          days?: number[]
           description?: string
           duration_min?: number
           id?: string

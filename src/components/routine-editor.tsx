@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { Task } from "@/lib/data";
 import { CATEGORY_LABEL, PERIOD_LABEL, type Period } from "@/lib/viva";
+import { WEEKDAYS } from "@/lib/reminders";
 import { proposeRoutine, type ProposedTask } from "@/lib/routine-ai.functions";
 
 type Draft = {
@@ -16,6 +17,7 @@ type Draft = {
   category: string;
   time_of_day: string;
   duration_min: number;
+  days: number[];
 };
 
 const EMPTY: Draft = {
@@ -25,6 +27,7 @@ const EMPTY: Draft = {
   category: "habitos",
   time_of_day: "",
   duration_min: 10,
+  days: [0, 1, 2, 3, 4, 5, 6],
 };
 
 export function TaskForm({
@@ -90,9 +93,30 @@ export function TaskForm({
           aria-label="Duração em minutos"
         />
       </div>
+      <div>
+        <p className="mb-2 text-xs text-muted-foreground">Dias da semana</p>
+        <div className="flex flex-wrap gap-1.5">
+          {WEEKDAYS.map((w, i) => {
+            const on = d.days.includes(i);
+            return (
+              <button
+                key={w}
+                type="button"
+                aria-pressed={on}
+                onClick={() =>
+                  setD({ ...d, days: on ? d.days.filter((x) => x !== i) : [...d.days, i].sort() })
+                }
+                className={`rounded-full border px-3 py-1 text-xs ${on ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground"}`}
+              >
+                {w}
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="flex gap-2">
         <button
-          disabled={saving || !d.title.trim()}
+          disabled={saving || !d.title.trim() || d.days.length === 0}
           className="rounded-full bg-gradient-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           {saving ? "Salvando..." : "Salvar"}
@@ -120,6 +144,7 @@ export function useTaskMutations() {
       category: d.category,
       time_of_day: d.time_of_day || null,
       duration_min: d.duration_min,
+      days: d.days,
       sort_order: Date.now() % 1_000_000,
     });
     if (error) return void toast.error("Não foi possível adicionar.");
@@ -137,6 +162,7 @@ export function useTaskMutations() {
         category: d.category,
         time_of_day: d.time_of_day || null,
         duration_min: d.duration_min,
+        days: d.days,
       })
       .eq("id", id);
     if (error) return void toast.error("Não foi possível salvar.");
@@ -189,6 +215,7 @@ export function TaskActions({ task }: { task: Task }) {
             category: task.category,
             time_of_day: task.time_of_day ?? "",
             duration_min: task.duration_min,
+            days: task.days ?? [0, 1, 2, 3, 4, 5, 6],
           }}
           onCancel={() => setEditing(false)}
           onSave={async (d) => {

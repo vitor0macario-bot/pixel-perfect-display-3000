@@ -29,6 +29,13 @@
       "when": 1791064168127,
       "tag": "0003_ai_settings_and_conversations",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791217340396,
+      "tag": "0004_task_days",
+      "breakpoints": true
     }
   ]
 }

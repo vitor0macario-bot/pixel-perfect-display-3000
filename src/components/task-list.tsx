@@ -2,15 +2,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { fetchCompletions, fetchTasks, toggleTask, type Task } from "@/lib/data";
+import { fetchCompletions, fetchTasks, isTaskToday, toggleTask, type Task } from "@/lib/data";
+import { WEEKDAYS } from "@/lib/reminders";
 import { PERIOD_LABEL, type Period } from "@/lib/viva";
 
-export function useRoutine() {
+export function useRoutine({ todayOnly = true }: { todayOnly?: boolean } = {}) {
   const { user } = useAuth();
   const tasks = useQuery({
     queryKey: ["tasks", user?.id],
     enabled: !!user,
     queryFn: () => fetchTasks(user!.id),
+    select: (list: Task[]) => (todayOnly ? list.filter((t) => isTaskToday(t)) : list),
   });
   const done = useQuery({
     queryKey: ["completions", user?.id],
@@ -18,6 +20,12 @@ export function useRoutine() {
     queryFn: () => fetchCompletions(user!.id),
   });
   return { tasks, done };
+}
+
+export function daysLabel(days?: number[]) {
+  if (!days || days.length === 7) return "Todos os dias";
+  if (days.length === 0) return "Nenhum dia";
+  return [...days].sort().map((d) => WEEKDAYS[d]).join(", ");
 }
 
 export function TaskRow({ task, done }: { task: Task; done: boolean }) {
