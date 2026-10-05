@@ -206,6 +206,55 @@ function todayLabel() {
   });
 }
 
+function TimelineRow({ task, done }: { task: Task; done: boolean }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  async function handleToggle() {
+    if (!user) return;
+    try {
+      await toggleTask(user.id, task.id, !done);
+      await queryClient.invalidateQueries({ queryKey: ["completions", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["history", user.id] });
+    } catch (error) {
+      console.error(error);
+      toast.error("Não conseguimos salvar agora. Tente novamente.");
+    }
+  }
+
+  return (
+    <div
+      className={`flex items-center gap-4 rounded-2xl border px-4 py-3 transition-colors ${
+        done ? "border-primary/40 bg-primary-soft/25" : "border-border bg-surface/60"
+      }`}
+    >
+      <span className="w-12 shrink-0 font-display text-sm font-semibold text-primary">
+        {task.time_of_day ?? "—"}
+      </span>
+      <button
+        onClick={handleToggle}
+        aria-label={done ? `Desmarcar ${task.title}` : `Concluir ${task.title}`}
+        className={`flex size-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
+          done ? "border-primary bg-primary" : "border-border hover:border-primary"
+        }`}
+      >
+        {done ? <Check className="size-3.5 text-primary-foreground" /> : null}
+      </button>
+      <div className="min-w-0 flex-1">
+        <p className={`truncate text-sm font-medium ${done ? "text-muted-foreground line-through" : ""}`}>
+          {task.title}
+        </p>
+        <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{task.duration_min} min</span>
+          <span className="rounded-full bg-surface-strong px-2 py-0.5">
+            {PERIOD_LABEL[task.period as Period] ?? task.period}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function ProgressRing({ percent }: { percent: number }) {
   const radius = 34;
   const circumference = 2 * Math.PI * radius;
