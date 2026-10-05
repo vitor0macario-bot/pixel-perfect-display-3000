@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TaskRow, useRoutine } from "@/components/task-list";
 import { PERIOD_LABEL, type Period } from "@/lib/viva";
+import { AddTaskButton, AiRoutinePanel, TaskActions } from "@/components/routine-editor";
 
 export const Route = createFileRoute("/_authenticated/rotina")({
   head: () => ({
@@ -26,8 +27,13 @@ function RotinaPage() {
     <div className="fade-in-soft">
       <h1 className="font-display text-2xl font-semibold sm:text-3xl">Minha rotina</h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Montada a partir das suas respostas. Marque as atividades ao concluir.
+        Personalize do seu jeito: adicione, edite ou remova atividades — ou peça para a IA ajustar.
       </p>
+
+      <div className="mt-6 flex flex-wrap items-start gap-3">
+        <AddTaskButton />
+        <AiRoutinePanel />
+      </div>
 
       {tasks.isLoading ? <p className="mt-8 text-sm text-muted-foreground">Carregando...</p> : null}
 
@@ -55,7 +61,10 @@ function RotinaPage() {
               </div>
               <div className="mt-4 space-y-3">
                 {list.map((task) => (
-                  <TaskRow key={task.id} task={task} done={done.data?.has(task.id) ?? false} />
+                  <div key={task.id}>
+                    <TaskRow task={task} done={done.data?.has(task.id) ?? false} />
+                    <TaskActions task={task} />
+                  </div>
                 ))}
               </div>
             </section>
