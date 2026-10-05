@@ -118,6 +118,30 @@ function InicioPage() {
         <ShortcutCard to="/progresso" label="Progresso" icon={LineChart} value="Sequência e histórico" />
       </section>
 
+      <section>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Agenda de hoje</h2>
+          <span className="text-sm text-muted-foreground">{agenda.length} atividades</span>
+        </div>
+        {tasks.isLoading ? (
+          <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
+        ) : agenda.length === 0 ? (
+          <div className="panel mt-4 p-6 text-sm text-muted-foreground">
+            Você ainda não tem uma rotina.{" "}
+            <Link to="/quiz" className="text-primary hover:underline">
+              Responder o quiz
+            </Link>
+            .
+          </div>
+        ) : (
+          <div className="mt-4 space-y-2">
+            {agenda.map((task) => (
+              <TimelineRow key={task.id} task={task} done={done.data?.has(task.id) ?? false} />
+            ))}
+          </div>
+        )}
+      </section>
+
       <section className="panel p-6">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold">Check-in de hoje</h2>
