@@ -1,10 +1,11 @@
+import { useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Apple, ArrowRight, CalendarDays, Dumbbell, LineChart, ListChecks } from "lucide-react";
+import { Apple, ArrowRight, CalendarDays, Check, Clock, Dumbbell, LineChart, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { fetchCheckins, fetchProfile, setCheckin } from "@/lib/data";
-import { CHECKIN_ITEMS, greeting, OFFLINE_CHECKIN_KEY, todayISO } from "@/lib/viva";
+import { fetchCheckins, fetchProfile, setCheckin, toggleTask, type Task } from "@/lib/data";
+import { CHECKIN_ITEMS, greeting, OFFLINE_CHECKIN_KEY, PERIOD_LABEL, todayISO, type Period } from "@/lib/viva";
 import { TaskRow, useRoutine } from "@/components/task-list";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -42,6 +43,21 @@ function InicioPage() {
     (done.data?.size ?? 0) + CHECKIN_ITEMS.filter((item) => checkinMap.get(item.id)).length;
   const percent = total ? Math.round((completed / total) * 100) : 0;
   const focus = (tasks.data ?? []).find((task) => !done.data?.has(task.id)) ?? null;
+
+  const agenda = useMemo(() => {
+    const timeKey = (task: Task) => {
+      if (task.time_of_day) {
+        const [h, m] = task.time_of_day.split(":").map(Number);
+        return (h || 0) * 60 + (m || 0);
+      }
+      // Sem horário: vai para o fim do dia, na ordem manhã → tarde → noite.
+      const periodOrder: Record<Period, number> = { manha: 0, tarde: 1, noite: 2 };
+      return 24 * 60 + periodOrder[task.period as Period] * 60;
+    };
+    return (tasks.data ?? [])
+      .slice()
+      .sort((a, b) => timeKey(a) - timeKey(b) || a.sort_order - b.sort_order);
+  }, [tasks.data]);
 
   async function handleCheckin(item: string, next: boolean) {
     if (!user) return;
@@ -100,6 +116,30 @@ function InicioPage() {
         <ShortcutCard to="/movimento" label="Movimento" icon={Dumbbell} value="Seu movimento" />
         <ShortcutCard to="/habitos" label="Hábitos" icon={ListChecks} value="Pequenos hábitos" />
         <ShortcutCard to="/progresso" label="Progresso" icon={LineChart} value="Sequência e histórico" />
+      </section>
+
+      <section>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Agenda de hoje</h2>
+          <span className="text-sm text-muted-foreground">{agenda.length} atividades</span>
+        </div>
+        {tasks.isLoading ? (
+          <p className="mt-4 text-sm text-muted-foreground">Carregando...</p>
+        ) : agenda.length === 0 ? (
+          <div className="panel mt-4 p-6 text-sm text-muted-foreground">
+            Você ainda não tem uma rotina.{" "}
+            <Link to="/quiz" className="text-primary hover:underline">
+              Responder o quiz
+            </Link>
+            .
+          </div>
+        ) : (
+          <div className="mt-4 space-y-2">
+            {agenda.map((task) => (
+              <TimelineRow key={task.id} task={task} done={done.data?.has(task.id) ?? false} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="panel p-6">
@@ -164,6 +204,55 @@ function todayLabel() {
     day: "numeric",
     month: "long",
   });
+}
+
+function TimelineRow({ task, done }: { task: Task; done: boolean }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  async function handleToggle() {
+    if (!user) return;
+    try {
+      await toggleTask(user.id, task.id, !done);
+      await queryClient.invalidateQueries({ queryKey: ["completions", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["history", user.id] });
+    } catch (error) {
+      console.error(error);
+      toast.error("Não conseguimos salvar agora. Tente novamente.");
+    }
+  }
+
+  return (
+    <div
+      className={`flex items-center gap-4 rounded-2xl border px-4 py-3 transition-colors ${
+        done ? "border-primary/40 bg-primary-soft/25" : "border-border bg-surface/60"
+      }`}
+    >
+      <span className="w-12 shrink-0 font-display text-sm font-semibold text-primary">
+        {task.time_of_day ?? "—"}
+      </span>
+      <button
+        onClick={handleToggle}
+        aria-label={done ? `Desmarcar ${task.title}` : `Concluir ${task.title}`}
+        className={`flex size-6 shrink-0 items-center justify-center rounded-full border transition-colors ${
+          done ? "border-primary bg-primary" : "border-border hover:border-primary"
+        }`}
+      >
+        {done ? <Check className="size-3.5 text-primary-foreground" /> : null}
+      </button>
+      <div className="min-w-0 flex-1">
+        <p className={`truncate text-sm font-medium ${done ? "text-muted-foreground line-through" : ""}`}>
+          {task.title}
+        </p>
+        <p className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{task.duration_min} min</span>
+          <span className="rounded-full bg-surface-strong px-2 py-0.5">
+            {PERIOD_LABEL[task.period as Period] ?? task.period}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function ProgressRing({ percent }: { percent: number }) {
