@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/rotina")({
 const PERIODS: Period[] = ["manha", "tarde", "noite"];
 
 function RotinaPage() {
-  const { tasks, done } = useRoutine();
+  const { tasks, done } = useRoutine({ todayOnly: false });
 
   return (
     <div className="fade-in-soft">
