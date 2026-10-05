@@ -10,7 +10,12 @@ export type Task = {
   time_of_day: string | null;
   duration_min: number;
   sort_order: number;
+  days: number[];
 };
+
+export function isTaskToday(task: Task, date = new Date()) {
+  return !task.days || task.days.includes(date.getDay());
+}
 
 export async function ensureProfile(userId: string, fallbackName: string) {
   const { data } = await supabase
@@ -53,7 +58,7 @@ export async function fetchProfile(userId: string) {
 export async function fetchTasks(userId: string) {
   const { data, error } = await supabase
     .from("tasks")
-    .select("id, period, category, title, description, time_of_day, duration_min, sort_order")
+    .select("id, period, category, title, description, time_of_day, duration_min, sort_order, days")
     .eq("user_id", userId)
     .eq("active", true)
     .order("sort_order", { ascending: true });
